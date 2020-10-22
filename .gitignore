@@ -1,0 +1,5 @@
+## ignore virtual environment
+assn
+
+## ignore python bytecode files
+*.pyc
