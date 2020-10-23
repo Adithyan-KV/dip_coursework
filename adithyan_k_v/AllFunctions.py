@@ -10,12 +10,21 @@ def compute_hist(image_path: Path, num_bins: int) -> list:
     # bins_vec and freq_vec should contain values computed by custom function
     # bins_vec_lib and freq_vec_lib should contain values computed by python library function
     image_data = io.imread(image_path)
-    hist, bins = numpy.histogram(image_data, bins=num_bins)
-    bin_centers = [(bins[i] + bins[i + 1]) / 2 for i in range(len(bins) - 1)]
-    bins_vec = None
+
+    # using inbuilt function
+    freq_vec_lib, bins = numpy.histogram(
+        image_data, bins=num_bins, range=(0, 255))
+    bins_vec_lib = [(bins[i] + bins[i + 1]) / 2 for i in range(len(bins) - 1)]
+    print(bins)
+    print(bins_vec_lib)
+    print(len(bins_vec_lib))
+
+    # using custom function
+    bin_width = 255 / num_bins
+    bins_vec = numpy.arange(bin_width / 2, 255, bin_width)
+    print(len(bins_vec))
+    print(bins_vec)
     freq_vec = None
-    bins_vec_lib = None
-    freq_vec_lib = None
     return [bins_vec, freq_vec, bins_vec_lib, freq_vec_lib]
 
 
@@ -49,4 +58,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-compute_hist('coins.png', 20)
+compute_hist('coins.png', 10)
