@@ -15,21 +15,16 @@ def compute_hist(image_path: Path, num_bins: int) -> list:
     freq_vec_lib, bins = np.histogram(
         image_data, bins=num_bins, range=(0, 255))
     bins_vec_lib = [(bins[i] + bins[i + 1]) / 2 for i in range(len(bins) - 1)]
-    print(bins_vec_lib)
-    print(freq_vec_lib)
 
     # using custom function
     bin_width = 255 / num_bins
     bins_vec = np.arange(bin_width / 2, 255, bin_width)
-    print(bins_vec)
-    freq_vec = np.zeros(num_bins, dtype=int)
-    for i in range(num_bins):
-        for row in image_data:
-            for column in row:
-                if i * bin_width <= column < (i + 1) * bin_width:
-                    freq_vec[i] += 1
-        # freq_vec = [i for i in range(num_bins)]
-    print(freq_vec)
+    binned_values = (image_data / bin_width).astype(int)
+    freq_vec = [(binned_values == bin_number).sum()
+                for bin_number in range(num_bins)]
+    # adding all the pixels with value 255 to the last bin
+    freq_vec[-1] += (binned_values == num_bins).sum()
+
     return [bins_vec, freq_vec, bins_vec_lib, freq_vec_lib]
 
 
