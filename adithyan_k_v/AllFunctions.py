@@ -58,4 +58,3 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-compute_hist('coins.png', 10)

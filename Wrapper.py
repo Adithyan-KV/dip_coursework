@@ -6,14 +6,15 @@ import numpy
 import skimage.io
 from matplotlib import pyplot
 
-from student_name.AllFunctions import compute_hist, otsu_threshold, change_background
-from student_name.AllFunctions import count_connected_components, binary_morphology, count_mser_components
+from adithyan_k_v.AllFunctions import compute_hist, otsu_threshold, change_background
+from adithyan_k_v.AllFunctions import count_connected_components, binary_morphology, count_mser_components
 
 
 def problem1():
     image_path = Path('../Data/images/coins.png')
     num_bins = 10
-    bins_vec, freq_vec, bins_vec_lib, freq_vec_lib = compute_hist(image_path, num_bins)
+    bins_vec, freq_vec, bins_vec_lib, freq_vec_lib = compute_hist(
+        image_path, num_bins)
     bins_error = numpy.mean(numpy.square(bins_vec - bins_vec_lib))
     freq_error = numpy.mean(numpy.square(freq_vec - freq_vec_lib))
     print(f'Error in bins: {bins_error}')
@@ -78,7 +79,8 @@ def problem5():
 
 def problem6():
     gray_image_path = Path('../Data/images/mser.png')
-    mser_binary_image, otsu_binary_image, num_mser_components, num_otsu_components = count_mser_components(gray_image_path)
+    mser_binary_image, otsu_binary_image, num_mser_components, num_otsu_components = count_mser_components(
+        gray_image_path)
 
     print(f'Number of characters detected using MSER: {num_mser_components}')
     print(f'Number of characters detected using Otsu: {num_otsu_components}')
