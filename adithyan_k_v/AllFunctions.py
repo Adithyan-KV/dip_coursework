@@ -52,7 +52,6 @@ def otsu_threshold(gray_image_path: Path) -> list:
         else:
             # if one class is empty, within class var is total image var
             within_class_variances[threshold] = np.var(image_data)
-    # print(f'minimum = {np.argmin(within_class_variances)}')
     thr_w = np.argmin(within_class_variances)
 
     timestamp_2 = time.time()
@@ -72,7 +71,6 @@ def otsu_threshold(gray_image_path: Path) -> list:
             between_class_variances[threshold] = w1 * w2 * ((m1 - m2)**2)
         else:
             between_class_variances[threshold] = 0
-    # print(f'maximum = {np.argmax(between_class_variances)}')
     thr_b = np.argmax(between_class_variances)
 
     timestamp_3 = time.time()
@@ -80,14 +78,19 @@ def otsu_threshold(gray_image_path: Path) -> list:
     time_w = timestamp_2 - timestamp_1
     time_b = timestamp_3 - timestamp_2
 
-    # print(f'time within class = {time_w}, time between class = {time_b}')
     bin_image = (image_data > thr_b) * 255
-    # print(bin_image)
     return [thr_w, thr_b, time_w, time_b, bin_image]
 
 
 def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray:
-    modified_image = None
+    background_data = io.imread(bg_image_path)
+    quote_data = io.imread(quote_image_path)
+
+    binarized_quote = otsu_threshold(quote_image_path)[4]
+    mask = (binarized_quote > 0)
+
+    # using binarized image as a mask to combine fg and bg
+    modified_image = np.invert(mask) * quote_data + mask * background_data
     return modified_image
 
 
