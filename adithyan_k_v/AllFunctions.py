@@ -29,7 +29,34 @@ def compute_hist(image_path: Path, num_bins: int) -> list:
 
 
 def otsu_threshold(gray_image_path: Path) -> list:
-    thr_w = thr_b = time_w = time_b = 0
+    image_data = io.imread(gray_image_path)
+
+    # Threshold by minimizing within class variance
+    total_pixels = image_data.size
+    within_class_variances = np.zeros(256)
+    for threshold in range(256):
+        print(threshold)
+        items_in_bin = (image_data <= threshold).sum()
+        print(items_in_bin)
+        w1 = items_in_bin / total_pixels
+        w2 = 1 - w1
+        # handles division by zero for classes with zero elements
+        if items_in_bin != 0:
+            # calculating variances for each class
+            v1 = np.var(image_data[image_data <= threshold])
+            # handling an edge case for threshold at 255
+            if threshold == 255:
+                v2 = 0
+            else:
+                v2 = np.var(image_data[image_data > threshold])
+            within_class_variances[threshold] = v1 * w1 + v2 * w2
+        else:
+            # padding with inf to keep variance-threshold index mapping in array
+            within_class_variances[threshold] = float('inf')
+    # print(within_class_variances, len(within_class_variances))
+    print(f'minimum = {np.argmin(within_class_variances)}')
+    thr_w = np.argmin(within_class_variances)
+    thr_b = time_w = time_b = 0
     bin_image = None
     return [thr_w, thr_b, time_w, time_b, bin_image]
 
@@ -58,3 +85,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
+otsu_threshold('coins.png')
