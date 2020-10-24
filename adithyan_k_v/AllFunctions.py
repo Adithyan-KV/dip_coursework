@@ -4,6 +4,7 @@ from pathlib import Path
 
 import numpy as np
 from skimage import io
+import time
 
 
 def compute_hist(image_path: Path, num_bins: int) -> list:
@@ -32,6 +33,8 @@ def otsu_threshold(gray_image_path: Path) -> list:
     image_data = io.imread(gray_image_path)
     total_pixels = image_data.size
 
+    timestamp_1 = time.time()
+
     # Threshold by minimizing within class variance
     within_class_variances = np.zeros(256)
     for threshold in range(256):
@@ -47,9 +50,12 @@ def otsu_threshold(gray_image_path: Path) -> list:
             v2 = np.var(image_data[image_data > threshold])
             within_class_variances[threshold] = v1 * w1 + v2 * w2
         else:
+            # if one class is empty, within class var is total image var
             within_class_variances[threshold] = np.var(image_data)
-    print(f'minimum = {np.argmin(within_class_variances)}')
+    # print(f'minimum = {np.argmin(within_class_variances)}')
     thr_w = np.argmin(within_class_variances)
+
+    timestamp_2 = time.time()
 
     # Threshold by maximizing between class variance
     between_class_variances = np.zeros(256)
@@ -65,10 +71,18 @@ def otsu_threshold(gray_image_path: Path) -> list:
             m2 = np.mean((image_data[image_data > threshold]))
             between_class_variances[threshold] = w1 * w2 * ((m1 - m2)**2)
         else:
-            between_class_variances[threshold] = float('-inf')
-    print(f'maximum = {np.argmax(between_class_variances)}')
-    thr_b = time_w = time_b = 0
-    bin_image = None
+            between_class_variances[threshold] = 0
+    # print(f'maximum = {np.argmax(between_class_variances)}')
+    thr_b = np.argmax(between_class_variances)
+
+    timestamp_3 = time.time()
+
+    time_w = timestamp_2 - timestamp_1
+    time_b = timestamp_3 - timestamp_2
+
+    # print(f'time within class = {time_w}, time between class = {time_b}')
+    bin_image = (image_data > thr_b) * 255
+    # print(bin_image)
     return [thr_w, thr_b, time_w, time_b, bin_image]
 
 
@@ -96,4 +110,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-otsu_threshold('coins.png')
+# otsu_threshold('coins.png')
