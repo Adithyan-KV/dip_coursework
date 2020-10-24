@@ -30,32 +30,43 @@ def compute_hist(image_path: Path, num_bins: int) -> list:
 
 def otsu_threshold(gray_image_path: Path) -> list:
     image_data = io.imread(gray_image_path)
+    total_pixels = image_data.size
 
     # Threshold by minimizing within class variance
-    total_pixels = image_data.size
     within_class_variances = np.zeros(256)
     for threshold in range(256):
-        print(threshold)
-        items_in_bin = (image_data <= threshold).sum()
-        print(items_in_bin)
-        w1 = items_in_bin / total_pixels
+        freq_c1 = (image_data <= threshold).sum()
+        freq_c2 = total_pixels - freq_c1
+        # calculating weights
+        w1 = freq_c1 / total_pixels
         w2 = 1 - w1
         # handles division by zero for classes with zero elements
-        if items_in_bin != 0:
+        if freq_c1 != 0 and freq_c2 != 0:
             # calculating variances for each class
             v1 = np.var(image_data[image_data <= threshold])
-            # handling an edge case for threshold at 255
-            if threshold == 255:
-                v2 = 0
-            else:
-                v2 = np.var(image_data[image_data > threshold])
+            v2 = np.var(image_data[image_data > threshold])
             within_class_variances[threshold] = v1 * w1 + v2 * w2
         else:
-            # padding with inf to keep variance-threshold index mapping in array
-            within_class_variances[threshold] = float('inf')
-    # print(within_class_variances, len(within_class_variances))
+            within_class_variances[threshold] = np.var(image_data)
     print(f'minimum = {np.argmin(within_class_variances)}')
     thr_w = np.argmin(within_class_variances)
+
+    # Threshold by maximizing between class variance
+    between_class_variances = np.zeros(256)
+    for threshold in range(256):
+        freq_c1 = (image_data <= threshold).sum()
+        freq_c2 = total_pixels - freq_c1
+        # calculating weights
+        w1 = freq_c1 / total_pixels
+        w2 = 1 - w1
+        # means
+        if freq_c1 != 0 and freq_c2 != 0:
+            m1 = np.mean((image_data[image_data <= threshold]))
+            m2 = np.mean((image_data[image_data > threshold]))
+            between_class_variances[threshold] = w1 * w2 * ((m1 - m2)**2)
+        else:
+            between_class_variances[threshold] = float('-inf')
+    print(f'maximum = {np.argmax(between_class_variances)}')
     thr_b = time_w = time_b = 0
     bin_image = None
     return [thr_w, thr_b, time_w, time_b, bin_image]
