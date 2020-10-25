@@ -95,6 +95,37 @@ def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray
 
 
 def count_connected_components(gray_image_path: Path) -> int:
+    bin_img = otsu_threshold(gray_image_path)[4]
+    label_matrix = np.zeros_like(bin_img)
+    print(bin_img.shape)
+
+    k = 0
+    rows, columns = bin_img.shape
+    print(rows, columns)
+    for i in range(rows):
+        for j in range(columns):
+            if bin_img[i, j] == 0:
+                # corner
+                if i == 0 and j == 0:
+                    k += 1
+                    label_matrix[i, j] = k
+
+                # top edge
+                elif i == 0:
+                    if bin_img[i, j - 1] == 1:
+                        k += 1
+                        label_matrix[i, j] = k
+
+                # left edge
+                elif j == 0:
+                    if bin_img[i - 1, j] == 1:
+                        k += 1
+                        label_matrix[i, j] == k
+
+                # general case
+                else:
+                    pass
+
     num_characters = 0
     return num_characters
 
@@ -113,4 +144,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-# otsu_threshold('coins.png')
+count_connected_components('quote.png')
