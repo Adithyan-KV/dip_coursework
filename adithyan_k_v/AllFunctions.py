@@ -103,48 +103,28 @@ def count_connected_components(gray_image_path: Path) -> int:
 
     k = 1
     rows, columns = bin_img.shape
+
     for i in range(rows):
         for j in range(columns):
-            if bin_img[i, j] == 0:
-                # corner
-                if i == 0 and j == 0:
-                    label_matrix[i, j] = k
-                    k += 1
+            if bin_img[i, j] == 1:
+                pass
 
-                # top edge
-                elif i == 0:
-                    if bin_img[i, j - 1] == 1:
-                        label_matrix[i, j] = k
-                        k += 1
+            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 1 and bin_img[i, j - 1] == 1:
+                label_matrix[i, j] = k
+                k += 1
 
-                # left edge
-                elif j == 0:
-                    if bin_img[i - 1, j] == 1:
-                        label_matrix[i, j] = k
-                        k += 1
+            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 0 and bin_img[i, j - 1] == 1:
+                label_matrix[i, j] = label_matrix[i - 1, j]
 
-                # general case
-                else:
-                    left_label = label_matrix[i, j - 1]
-                    top_label = label_matrix[i - 1, j]
-                    # if both top and left have label
-                    if bin_img[i, j - 1] == 0 and bin_img[i - 1, j] == 0:
-                        if left_label == top_label:
-                            label_matrix[i, j] = top_label
-                        else:
-                            label_matrix[i, j] = top_label
-                            # replace all previous left labels to top label
-                            label_matrix[label_matrix ==
-                                         left_label] = top_label
-                    # if only one of top or left has label, copy label
-                    elif bin_img[i, j - 1] == 0 and bin_img[i - 1, j] == 1:
-                        label_matrix[i, j] == left_label
-                    elif bin_img[i - 1, j] == 0 and bin_img[i, j - 1] == 1:
-                        label_matrix[i, j] == top_label
-                    # if both are unlabelled
-                    elif bin_img[i, j - 1] == 1 and bin_img[i - 1, j] == 1:
-                        label_matrix[i, j] = k
-                        k += 1
+            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 1 and bin_img[i, j - 1] == 0:
+                label_matrix[i, j] = label_matrix[i, j - 1]
+
+            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 0 and bin_img[i, j - 1] == 0:
+                label_matrix[i, j] = label_matrix[i - 1, j]
+
+                if label_matrix[i - 1, j] != label_matrix[i, j - 1]:
+                    label_matrix[label_matrix ==
+                                 label_matrix[i, j - 1]] = label_matrix[i - 1, j]
 
     num = np.unique(label_matrix)
     # print(label_matrix)
