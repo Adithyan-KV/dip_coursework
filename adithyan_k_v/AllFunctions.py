@@ -5,6 +5,7 @@ from pathlib import Path
 import numpy as np
 from skimage import io
 import time
+import matplotlib.pyplot as plt
 
 
 def compute_hist(image_path: Path, num_bins: int) -> list:
@@ -96,36 +97,59 @@ def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray
 
 def count_connected_components(gray_image_path: Path) -> int:
     bin_img = otsu_threshold(gray_image_path)[4]
+    bin_img = (bin_img / 255).astype(int)
+    print(bin_img)
     label_matrix = np.zeros_like(bin_img)
-    print(bin_img.shape)
 
-    k = 0
+    k = 1
     rows, columns = bin_img.shape
-    print(rows, columns)
     for i in range(rows):
         for j in range(columns):
             if bin_img[i, j] == 0:
                 # corner
                 if i == 0 and j == 0:
-                    k += 1
                     label_matrix[i, j] = k
+                    k += 1
 
                 # top edge
                 elif i == 0:
                     if bin_img[i, j - 1] == 1:
-                        k += 1
                         label_matrix[i, j] = k
+                        k += 1
 
                 # left edge
                 elif j == 0:
                     if bin_img[i - 1, j] == 1:
+                        label_matrix[i, j] = k
                         k += 1
-                        label_matrix[i, j] == k
 
                 # general case
                 else:
-                    pass
+                    left_label = label_matrix[i, j - 1]
+                    top_label = label_matrix[i - 1, j]
+                    # if both top and left have label
+                    if bin_img[i, j - 1] == 0 and bin_img[i - 1, j] == 0:
+                        if left_label == top_label:
+                            label_matrix[i, j] = top_label
+                        else:
+                            label_matrix[i, j] = top_label
+                            # replace all previous left labels to top label
+                            label_matrix[label_matrix ==
+                                         left_label] = top_label
+                    # if only one of top or left has label, copy label
+                    elif bin_img[i, j - 1] == 0 and bin_img[i - 1, j] == 1:
+                        label_matrix[i, j] == left_label
+                    elif bin_img[i - 1, j] == 0 and bin_img[i, j - 1] == 1:
+                        label_matrix[i, j] == top_label
+                    # if both are unlabelled
+                    elif bin_img[i, j - 1] == 1 and bin_img[i - 1, j] == 1:
+                        label_matrix[i, j] = k
+                        k += 1
 
+    num = np.unique(label_matrix)
+    # print(label_matrix)
+    # print(num)
+    print(len(num))
     num_characters = 0
     return num_characters
 
