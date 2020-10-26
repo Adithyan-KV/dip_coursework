@@ -96,9 +96,7 @@ def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray
 
 
 def count_connected_components(gray_image_path: Path) -> int:
-    bin_img = otsu_threshold(gray_image_path)[4]
-    bin_img = (bin_img / 255).astype(int)
-    print(bin_img)
+    bin_img = otsu_threshold(gray_image_path)[4] / 255
     label_matrix = np.zeros_like(bin_img)
 
     k = 1
@@ -106,31 +104,58 @@ def count_connected_components(gray_image_path: Path) -> int:
 
     for i in range(rows):
         for j in range(columns):
-            if bin_img[i, j] == 1:
-                pass
+            if bin_img[i, j] == 0:
+                # corner pixel
+                if i == 0 and j == 0:
+                    label_matrix[i, j] = k
+                    k += 1
 
-            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 1 and bin_img[i, j - 1] == 1:
-                label_matrix[i, j] = k
-                k += 1
+                # top edge pixel
+                elif i == 0:
+                    if bin_img[i, j - 1] == 1:
+                        label_matrix[i, j] = k
+                        k += 1
 
-            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 0 and bin_img[i, j - 1] == 1:
-                label_matrix[i, j] = label_matrix[i - 1, j]
+                # left edge pixel
+                elif j == 0:
+                    if bin_img[i - 1, j] == 1:
+                        label_matrix[i, j] = k
+                        k += 1
 
-            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 1 and bin_img[i, j - 1] == 0:
-                label_matrix[i, j] = label_matrix[i, j - 1]
+                # general case
+                else:
+                    left_label = label_matrix[i, j - 1]
+                    top_label = label_matrix[i - 1, j]
+                    left_pixel = bin_img[i, j - 1]
+                    top_pixel = bin_img[i - 1, j]
 
-            elif bin_img[i, j] == 0 and bin_img[i - 1, j] == 0 and bin_img[i, j - 1] == 0:
-                label_matrix[i, j] = label_matrix[i - 1, j]
+                    if top_pixel == 1 and left_pixel == 1:
+                        label_matrix[i, j] = k
+                        k += 1
 
-                if label_matrix[i - 1, j] != label_matrix[i, j - 1]:
-                    label_matrix[label_matrix ==
-                                 label_matrix[i, j - 1]] = label_matrix[i - 1, j]
+                    # if part of component on top assign label of top
+                    elif top_pixel == 0 and left_pixel == 1:
+                        label_matrix[i, j] = top_label
 
-    num = np.unique(label_matrix)
-    # print(label_matrix)
-    # print(num)
-    print(len(num))
-    num_characters = 0
+                    # if part of component on left assign label of left
+                    elif top_pixel == 1 and left_pixel == 0:
+                        label_matrix[i, j] = left_label
+
+                    # if connected to both top and left
+                    elif top_pixel == 0 and left_pixel == 0:
+                        label_matrix[i, j] = top_label
+
+                        # replace all instances of label on left with top label
+                        if top_label != left_label:
+                            label_matrix[label_matrix ==
+                                         left_label] = top_label
+
+    num_components, counts = np.unique(label_matrix, return_counts=True)
+    # removing background
+    num_with_punctuations = len(num_components) - 1
+    # setting a threshold of 120 pixel area to remove punctuations
+    num_punctuations = (counts <= 120).sum()
+    num_characters = num_with_punctuations - num_punctuations
     return num_characters
 
 
