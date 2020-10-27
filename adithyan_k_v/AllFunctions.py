@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+from scipy import signal
 from skimage import io
 import time
 import matplotlib.pyplot as plt
@@ -160,7 +161,21 @@ def count_connected_components(gray_image_path: Path) -> int:
 
 
 def binary_morphology(gray_image_path: Path) -> np.ndarray:
+    bin_image = otsu_threshold(gray_image_path)[4] / 255
+    # plt.imshow(bin_image, cmap='gray')
+    # plt.show()
+    cleaned = majority(bin_image)
+    plt.imshow(cleaned, cmap='gray')
+    plt.show()
     cleaned_image = None
+    return cleaned_image
+
+
+def majority(image_data):
+    dimension = 5
+    structuring_element = np.ones((dimension, dimension))
+    convolved_matrix = signal.convolve2d(image_data, structuring_element)
+    cleaned_image = (convolved_matrix > int(dimension**2 / 2))
     return cleaned_image
 
 
@@ -173,4 +188,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-count_connected_components('quote.png')
+# binary_morphology('noisy.png')
