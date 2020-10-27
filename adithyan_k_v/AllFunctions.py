@@ -165,18 +165,43 @@ def binary_morphology(gray_image_path: Path) -> np.ndarray:
     # plt.imshow(bin_image, cmap='gray')
     # plt.show()
     cleaned = majority(bin_image)
-    plt.imshow(cleaned, cmap='gray')
-    plt.show()
+    # plt.imshow(cleaned, cmap='gray')
+    # plt.show()
     cleaned_image = None
     return cleaned_image
+
+
+def conv2D(image, kernel, stride=1):
+    vectorized_image = img_to_array(image, kernel)
+    convolved_matrix = np.matmul(vectorized_image, kernel.flatten())
+    print(convolved_matrix.shape())
+    return convolved_matrix
+
+
+def img_to_array(image, kernel):
+    kernel_size = kernel.shape[0]
+    rows, columns = image.shape
+    print(image.shape)
+    vectorized_array = []
+    for row in range(1, rows - 1):
+        for column in range(1, columns - 1):
+            window = image[row: row + kernel_size,
+                           column: column + kernel_size]
+            vectorized_array.append(window.flatten())
+    print(np.array(vectorized_array).shape)
+    print(np.array(vectorized_array))
+
+    return np.transpose(np.array(vectorized_array))
 
 
 def majority(image_data):
     dimension = 5
     structuring_element = np.ones((dimension, dimension))
-    convolved_matrix = signal.convolve2d(image_data, structuring_element)
-    cleaned_image = (convolved_matrix > int(dimension**2 / 2))
-    return cleaned_image
+    convolved_matrix = conv2D(image_data, structuring_element)
+    print(convolved_matrix.shape)
+    return None
+    # cleaned_image = (convolved_matrix > int(dimension**2 / 2))
+    # return cleaned_image
 
 
 def count_mser_components(gray_image_path: Path) -> list:
@@ -188,4 +213,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-# binary_morphology('noisy.png')
+binary_morphology('noisy.png')
