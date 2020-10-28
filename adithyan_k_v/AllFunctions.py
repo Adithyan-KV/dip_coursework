@@ -162,15 +162,15 @@ def count_connected_components(gray_image_path: Path) -> int:
 
 def binary_morphology(gray_image_path: Path) -> np.ndarray:
     bin_image = otsu_threshold(gray_image_path)[4] / 255
+    # applying a majority filter
     cleaned_image = majority(bin_image)
-    plt.imshow(cleaned_image, cmap='gray')
-    plt.show()
     return cleaned_image
 
 
 def conv2D(image, kernel, stride=1):
     rows, columns = image.shape
     padding = int(kernel.shape[0] / 2)
+    # convolution implemented as a matrix multiplication
     vectorized_image = img_to_array(image, kernel)
     convolved_array = np.matmul(vectorized_image, kernel.flatten())
     convolved_matrix = np.reshape(
@@ -187,7 +187,6 @@ def img_to_array(image, kernel):
     windows = view_as_windows(image, kernel_size)
     # reshaping to appropriate dimensions for matrix multiplication with kernel
     array = windows.reshape(output_shape, kernel_size**2)
-    print(array.shape)
     return array
 
 
@@ -209,4 +208,4 @@ def count_mser_components(gray_image_path: Path) -> list:
 
 
 # Testing code delete later
-binary_morphology('noisy.png')
+# binary_morphology('noisy.png')
