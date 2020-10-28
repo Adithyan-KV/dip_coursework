@@ -162,46 +162,44 @@ def count_connected_components(gray_image_path: Path) -> int:
 
 def binary_morphology(gray_image_path: Path) -> np.ndarray:
     bin_image = otsu_threshold(gray_image_path)[4] / 255
-    # plt.imshow(bin_image, cmap='gray')
-    # plt.show()
-    cleaned = majority(bin_image)
-    # plt.imshow(cleaned, cmap='gray')
-    # plt.show()
-    cleaned_image = None
+    cleaned_image = majority(bin_image)
+    plt.imshow(cleaned_image, cmap='gray')
+    plt.show()
     return cleaned_image
 
 
 def conv2D(image, kernel, stride=1):
+    rows, columns = image.shape
+    padding = int(kernel.shape[0] / 2)
     vectorized_image = img_to_array(image, kernel)
-    convolved_matrix = np.matmul(vectorized_image, kernel.flatten())
-    print(convolved_matrix.shape())
+    convolved_array = np.matmul(kernel.flatten(), vectorized_image)
+    convolved_matrix = np.reshape(
+        convolved_array, (rows - 2 * padding, columns - 2 * padding))
     return convolved_matrix
 
 
 def img_to_array(image, kernel):
     kernel_size = kernel.shape[0]
     rows, columns = image.shape
-    print(image.shape)
-    vectorized_array = []
-    for row in range(1, rows - 1):
-        for column in range(1, columns - 1):
+    padding = int(kernel_size / 2)
+    array = []
+
+    for row in range(rows - padding - 1):
+        for column in range(columns - padding - 1):
             window = image[row: row + kernel_size,
                            column: column + kernel_size]
-            vectorized_array.append(window.flatten())
-    print(np.array(vectorized_array).shape)
-    print(np.array(vectorized_array))
+            array.append(window.flatten())
 
-    return np.transpose(np.array(vectorized_array))
+    return np.transpose(np.array(array))
 
 
 def majority(image_data):
-    dimension = 5
+    dimension = 3
     structuring_element = np.ones((dimension, dimension))
     convolved_matrix = conv2D(image_data, structuring_element)
-    print(convolved_matrix.shape)
-    return None
-    # cleaned_image = (convolved_matrix > int(dimension**2 / 2))
-    # return cleaned_image
+    cleaned_image = (convolved_matrix > int(dimension**2 / 2))
+    # return convolved_matrix
+    return cleaned_image
 
 
 def count_mser_components(gray_image_path: Path) -> list:
