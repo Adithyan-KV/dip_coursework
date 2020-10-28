@@ -3,8 +3,8 @@
 from pathlib import Path
 
 import numpy as np
-from scipy import signal
 from skimage import io
+from skimage.util.shape import view_as_windows
 import time
 import matplotlib.pyplot as plt
 
@@ -172,7 +172,7 @@ def conv2D(image, kernel, stride=1):
     rows, columns = image.shape
     padding = int(kernel.shape[0] / 2)
     vectorized_image = img_to_array(image, kernel)
-    convolved_array = np.matmul(kernel.flatten(), vectorized_image)
+    convolved_array = np.matmul(vectorized_image, kernel.flatten())
     convolved_matrix = np.reshape(
         convolved_array, (rows - 2 * padding, columns - 2 * padding))
     return convolved_matrix
@@ -181,16 +181,14 @@ def conv2D(image, kernel, stride=1):
 def img_to_array(image, kernel):
     kernel_size = kernel.shape[0]
     rows, columns = image.shape
-    padding = int(kernel_size / 2)
-    array = []
+    output_shape = (rows - kernel_size + 1) * (columns - kernel_size + 1)
 
-    for row in range(rows - padding - 1):
-        for column in range(columns - padding - 1):
-            window = image[row: row + kernel_size,
-                           column: column + kernel_size]
-            array.append(window.flatten())
-
-    return np.transpose(np.array(array))
+    # the image matrix converted into a matrix of windows, stride 1
+    windows = view_as_windows(image, kernel_size)
+    # reshaping to appropriate dimensions for matrix multiplication with kernel
+    array = windows.reshape(output_shape, kernel_size**2)
+    print(array.shape)
+    return array
 
 
 def majority(image_data):
