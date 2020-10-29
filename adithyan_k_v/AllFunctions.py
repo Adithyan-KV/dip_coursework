@@ -89,10 +89,10 @@ def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray
     quote_data = io.imread(quote_image_path)
 
     binarized_quote = otsu_threshold(quote_image_path)[4]
-    mask = (binarized_quote > 0)
+    mask = (binarized_quote / 255)
 
     # using binarized image as a mask to combine fg and bg
-    modified_image = np.invert(mask) * quote_data + mask * background_data
+    modified_image = (1 - mask) * quote_data + mask * background_data
     return modified_image
 
 
