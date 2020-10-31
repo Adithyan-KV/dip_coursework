@@ -201,11 +201,14 @@ def majority(image_data):
 
 def count_mser_components(gray_image_path: Path) -> list:
     mser_binary_image = None
-    otsu_binary_image = None
+    otsu_binary_image = otsu_threshold(gray_image_path)[4]
+    plt.imshow(otsu_binary_image, cmap='gray')
+    plt.show()
     num_mser_components = 0
-    num_otsu_components = 0
+    num_otsu_components = count_connected_components(gray_image_path)
+    print(num_otsu_components)
     return [mser_binary_image, otsu_binary_image, num_mser_components, num_otsu_components]
 
 
 # Testing code delete later
-# binary_morphology('noisy.png')
+count_mser_components('mser.png')
