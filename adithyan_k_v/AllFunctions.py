@@ -98,6 +98,17 @@ def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray
 
 def count_connected_components(gray_image_path: Path) -> int:
     bin_img = otsu_threshold(gray_image_path)[4] / 255
+    label_matrix = find_and_label_connected_components(bin_img)
+    num_components, counts = np.unique(label_matrix, return_counts=True)
+    # removing background
+    num_with_punctuations = len(num_components) - 1
+    # setting a threshold of 120 pixel area to remove punctuations
+    num_punctuations = (counts <= 120).sum()
+    num_characters = num_with_punctuations - num_punctuations
+    return num_characters
+
+
+def find_and_label_connected_components(bin_img):
     label_matrix = np.zeros_like(bin_img)
 
     k = 1
@@ -150,14 +161,7 @@ def count_connected_components(gray_image_path: Path) -> int:
                         if top_label != left_label:
                             label_matrix[label_matrix ==
                                          left_label] = top_label
-
-    num_components, counts = np.unique(label_matrix, return_counts=True)
-    # removing background
-    num_with_punctuations = len(num_components) - 1
-    # setting a threshold of 120 pixel area to remove punctuations
-    num_punctuations = (counts <= 120).sum()
-    num_characters = num_with_punctuations - num_punctuations
-    return num_characters
+    return label_matrix
 
 
 def binary_morphology(gray_image_path: Path) -> np.ndarray:
@@ -200,15 +204,17 @@ def majority(image_data):
 
 
 def count_mser_components(gray_image_path: Path) -> list:
-    mser_binary_image = None
     otsu_binary_image = otsu_threshold(gray_image_path)[4]
+    num_otsu_components = count_connected_components(gray_image_path)
+    for i in range(255):
+        print(i)
+    mser_binary_image = None
     plt.imshow(otsu_binary_image, cmap='gray')
     plt.show()
     num_mser_components = 0
-    num_otsu_components = count_connected_components(gray_image_path)
     print(num_otsu_components)
     return [mser_binary_image, otsu_binary_image, num_mser_components, num_otsu_components]
 
 
 # Testing code delete later
-count_mser_components('mser.png')
+# count_mser_components('mser.png')
