@@ -99,9 +99,9 @@ def change_background(quote_image_path: Path, bg_image_path: Path) -> np.ndarray
 def count_connected_components(gray_image_path: Path) -> int:
     bin_img = otsu_threshold(gray_image_path)[4] / 255
     label_matrix = find_and_label_connected_components(bin_img)
-    num_components, counts = np.unique(label_matrix, return_counts=True)
+    components, counts = np.unique(label_matrix, return_counts=True)
     # removing background
-    num_with_punctuations = len(num_components) - 1
+    num_with_punctuations = len(components) - 1
     # setting a threshold of 120 pixel area to remove punctuations
     num_punctuations = (counts <= 120).sum()
     num_characters = num_with_punctuations - num_punctuations
@@ -206,15 +206,40 @@ def majority(image_data):
 def count_mser_components(gray_image_path: Path) -> list:
     otsu_binary_image = otsu_threshold(gray_image_path)[4]
     num_otsu_components = count_connected_components(gray_image_path)
-    for i in range(255):
-        print(i)
-    mser_binary_image = None
-    plt.imshow(otsu_binary_image, cmap='gray')
-    plt.show()
-    num_mser_components = 0
-    print(num_otsu_components)
+    image_data = io.imread(gray_image_path)
+    polarity_threshold = 150  # value of background
+    mser_binary_image = np.ones_like(image_data)
+
+    epsilon = 5
+    delta = 10
+
+    current_image = (image_data > 0).astype(int)
+    current_labels = find_and_label_connected_components(current_image)
+    next_image = (image_data > epsilon)
+    next_labels = find_and_label_connected_components(next_image)
+
+    for threshold in range(epsilon, 255 - epsilon, epsilon):
+        print(threshold)
+        prev_labels = current_labels
+        current_labels = next_labels
+        next_image = (image_data < threshold + epsilon)
+        if threshold < polarity_threshold:
+            # flip polarity
+            next_image = 1 - next_image
+        next_labels = find_and_label_connected_components(next_image)
+        diff_1 = np.subtract(current_labels, prev_labels, dtype=np.int)
+        diff_2 = np.subtract(next_labels, prev_labels, dtype=np.int)
+        components = np.unique(next_labels)
+
+        for component in components:
+            component_size = (next_labels == component).sum()
+            epsilon_1 = (diff_1 == component).sum()
+            epsilon_2 = (diff_2 == component).sum()
+            if epsilon_1 < delta and epsilon_2 < delta:
+                if component_size < 10000 and component_size > 100:
+                    mser_binary_image *= (next_labels != component)
+
+    components = find_and_label_connected_components(mser_binary_image)
+    num_components = np.unique(components)
+    num_mser_components = num_components - 1  # removing background
     return [mser_binary_image, otsu_binary_image, num_mser_components, num_otsu_components]
-
-
-# Testing code delete later
-# count_mser_components('mser.png')
